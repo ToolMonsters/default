@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Default Campaign Analytics Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --yellow: #F8CE43;
+      --yellow-light: #FFDE5B;
+      --black: #000000;
+      --dark-gray: #1a1a1a;
+      --gray: #666666;
+      --light-gray: #f5f5f5;
+      --white: #FFFFFF;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #F59E0B;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--black);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: #000000;
+      padding: 2.5rem 0;
+      border-bottom: 4px solid var(--yellow);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .logo-img {
+      height: 60px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-section h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-section h1 span {
+      color: var(--yellow);
+    }
+
+    .logo-section p {
+      font-size: 1.125rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* KPI Section */
+    .kpi-section {
+      background: var(--light-gray);
+      padding: 3rem 0;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+    }
+
+    .kpi-card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--yellow);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .kpi-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .kpi-value {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--black);
+      display: block;
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 0.875rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.75rem;
+      font-weight: 600;
+    }
+
+    .kpi-subtext {
+      font-size: 0.875rem;
+      color: var(--gray);
+      margin-top: 0.5rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 4rem 0;
+      background: var(--white);
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 2rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--yellow);
+      display: inline-block;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .dashboard-grid.three-col {
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 2rem;
+      height: 100%;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--white);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #E2E8F0;
+      color: var(--dark-gray);
+    }
+
+    tbody tr:hover {
+      background: var(--light-gray);
+    }
+
+    .badge {
+      background: var(--yellow);
+      color: var(--black);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge.interest {
+      background: var(--success);
+    }
+
+    .badge.criticism {
+      background: var(--warning);
+    }
+
+    .badge.feature {
+      background: var(--yellow-light);
+    }
+
+    /* Progress Bars */
+    .progress-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .progress-item {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+
+    .progress-label {
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .progress-value {
+      font-weight: 700;
+      color: var(--black);
+      background: var(--yellow);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--light-gray);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--black);
+      border-radius: 4px;
+      transition: width 1.5s ease-out;
+    }
+
+    /* Feature Lists */
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-item {
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: var(--light-gray);
+      border-left: 4px solid var(--yellow);
+      border-radius: 6px;
+      color: var(--dark-gray);
+    }
+
+    .feature-item.highlight {
+      border-left-color: var(--success);
+      background: #F0FDF4;
+    }
+
+    .feature-item.warning {
+      border-left-color: var(--warning);
+      background: #FEF3C7;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      height: 300px;
+      margin-top: 1rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+      background: var(--light-gray);
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--black);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* Section Divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
+      margin: 4rem 0;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--black);
+      color: var(--white);
+      padding: 2rem 0;
+      text-align: center;
+      border-top: 4px solid var(--yellow);
+      margin-top: 4rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .logo-section {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .logo-img {
+        height: 50px;
+      }
+
+      .logo-section h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo-section">
+          <img src="logo.png" alt="Slate Logo" class="logo-img">
+          <div class="logo-text">
+            <h1>Campaign <span>Analytics</span></h1>
+            <p>LinkedIn Comments & Reactions Analysis Dashboard</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Section -->
+  <section class="kpi-section">
+    <div class="container">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-value">941</span>
+          <span class="kpi-label">Comments</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">633</span>
+          <span class="kpi-label">Unique Commenters</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">553</span>
+          <span class="kpi-label">Companies Represented</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">45.7%</span>
+          <span class="kpi-label">Engagement Rate</span>
+          <span class="kpi-subtext">Interest + Criticism + Feature</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Feedback Analysis -->
+      <h2 class="section-title">Feedback Type Distribution</h2>
+      
+      <div class="dashboard-grid">
+        <!-- Feedback Distribution Chart -->
+        <div class="card">
+          <h3 class="card-title">Comment Feedback Types</h3>
+          <div class="chart-container">
+            <canvas id="feedbackChart"></canvas>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">213</div>
+              <div class="stat-label">Interest</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">138</div>
+              <div class="stat-label">Frustrations</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">79</div>
+              <div class="stat-label">Feature</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">511</div>
+              <div class="stat-label">None Listed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geographic Distribution -->
+        <div class="card">
+          <h3 class="card-title">Geographic Distribution</h3>
+          <div class="chart-container">
+            <canvas id="geoChart"></canvas>
+          </div>
+          <p style="font-size: 0.875rem; color: var(--gray); margin-top: 1rem; text-align: center;">
+            Based on 836 comments with location data
+          </p>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Demographics -->
+      <h2 class="section-title">Company Demographics</h2>
+      
+      <div class="dashboard-grid three-col">
+        <!-- Company Size -->
+        <div class="card">
+          <h3 class="card-title">Company Size Distribution</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">2-10</span>
+                <span class="progress-value">24.3%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 24.3%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">51-200</span>
+                <span class="progress-value">23.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 23.8%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">11-50</span>
+                <span class="progress-value">14.1%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 14.1%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">0-1</span>
+                <span class="progress-value">13.3%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 13.3%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">201-500</span>
+                <span class="progress-value">7.9%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 7.9%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Industries -->
+        <div class="card">
+          <h3 class="card-title">Top Industries</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Computer Software</span>
+                <span class="progress-value">41.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 41.4%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Marketing & Advertising</span>
+                <span class="progress-value">19.6%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 19.6%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Management Consulting</span>
+                <span class="progress-value">8.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 8.7%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">IT Services</span>
+                <span class="progress-value">6.0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 6.0%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Financial Services</span>
+                <span class="progress-value">2.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 2.4%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Job Seniority -->
+        <div class="card">
+          <h3 class="card-title">Seniority Levels</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">C-Level/Founder</span>
+                <span class="progress-value">48.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 48.4%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Mid-Level</span>
+                <span class="progress-value">21.3%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 21.3%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">VP/Director</span>
+                <span class="progress-value">13.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 13.8%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Senior</span>
+                <span class="progress-value">10.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 10.8%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Manager</span>
+                <span class="progress-value">5.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 5.7%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Key Insights -->
+      <h2 class="section-title">Campaign Insights</h2>
+
+      <!-- Strategic Message Box -->
+      <div class="card" style="background: linear-gradient(135deg, #000 0%, #1a1a1a 100%); border: none; margin-bottom: 2rem;">
+        <div style="text-align: center; padding: 1rem;">
+          <p style="color: var(--yellow); text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 0.5rem;">Key Campaign Takeaway</p>
+          <h3 style="color: white; font-size: 1.75rem; font-weight: 800; line-height: 1.3; margin-bottom: 1rem;">
+            "The audience perceives Default as the <span style="color: var(--yellow);">consolidation moment</span> for GTM tech stacks - a modern platform that frees RevOps teams from legacy tool complexity."
+          </h3>
+          <p style="color: rgba(255,255,255,0.7); font-size: 1rem;">
+            Comments reveal deep frustration with traditional MAPs and strong enthusiasm for a solution combining <strong style="color: white;">simplicity, speed, and practical AI</strong>.
+          </p>
+        </div>
+      </div>
+      
+      <div class="dashboard-grid">
+        <!-- What Resonates -->
+        <div class="card">
+          <h3 class="card-title">🎯 What Resonates Most (213 Interest Comments)</h3>
+          <ul class="feature-list">
+            <li class="feature-item highlight">
+              <strong>"One Tool Replaces Six" Positioning</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">The audience sees Default as the consolidation play - "super cool when one tool replaces six and still moves faster".</span>
+            </li>
+            <li class="feature-item highlight">
+              <strong>Routing & Lead Management as Game-Changer</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">"This is what every RevOps team actually needs but rarely gets" - routing automation resonates deeply with operators.</span>
+            </li>
+            <li class="feature-item highlight">
+              <strong>AI Applied in Real-World Ways</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">AI lead routing and practical automation features generate curiosity - "Love seeing AI applied in a real world way".</span>
+            </li>
+            <li class="feature-item highlight">
+              <strong>ABM Accessibility</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">"What used to require six figures and a stack of tools can now be done with leaner setups" - democratization message lands.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Pain Points Validated -->
+        <div class="card">
+          <h3 class="card-title">⚡ Industry Frustrations Expressed (138 Comments)</h3>
+          <p style="font-size: 0.875rem; color: var(--gray); margin-bottom: 1rem; font-style: italic;">
+            Frustrations with legacy tools & current systems - these validate the need for modern solutions like Default.
+          </p>
+          <ul class="feature-list">
+            <li class="feature-item warning">
+              <strong>MAPs Are "Broken" & "Anachronistic"</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">"Marketing automation is so broken!" - legacy routers weren't built for today's signal-rich environments.</span>
+            </li>
+            <li class="feature-item warning">
+              <strong>Routing Logic = "Spaghetti Code"</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">"Routing logic always starts with one clean rule and somehow ends up as a plate of spaghetti no one wants to touch."</span>
+            </li>
+            <li class="feature-item warning">
+              <strong>Speed to Lead Crisis</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">"6 hours to 2.5 - Modern GTM teams deserve better." Slow routing is perceived as a pipeline killer.</span>
+            </li>
+            <li class="feature-item warning">
+              <strong>AI Hype vs. Reality Gap</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">"85% see AI as critical vs <10% see ROI" - teams are stuck in experiment zone, needing practical applications.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Feature Expectations -->
+      <div class="card" style="margin-top: 2rem;">
+        <h3 class="card-title">🔮 Identified Product Expectations (79 Feature Comments)</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+          <div style="padding: 1.5rem; background: var(--light-gray); border-radius: 8px; border-top: 3px solid var(--yellow);">
+            <strong style="display: block; margin-bottom: 0.5rem;">🤖 AI-Powered Orchestration</strong>
+            <span style="color: var(--gray); font-size: 0.875rem;">"One interface I can chat with (LLM style) that figures out the backend" - demand for intelligent, unified control.</span>
+          </div>
+          <div style="padding: 1.5rem; background: var(--light-gray); border-radius: 8px; border-top: 3px solid var(--yellow);">
+            <strong style="display: block; margin-bottom: 0.5rem;">📊 Transparent Lead Scoring</strong>
+            <span style="color: var(--gray); font-size: 0.875rem;">"Lead scoring shouldn't feel like a mystery" - Sales needs to understand the "why" behind scores to trust the system.</span>
+          </div>
+          <div style="padding: 1.5rem; background: var(--light-gray); border-radius: 8px; border-top: 3px solid var(--yellow);">
+            <strong style="display: block; margin-bottom: 0.5rem;">🔗 Tool Consolidation</strong>
+            <span style="color: var(--gray); font-size: 0.875rem;">"Fewer tabs. Better outcomes." - Centralization is essential for scaling marketing teams.</span>
+          </div>
+          <div style="padding: 1.5rem; background: var(--light-gray); border-radius: 8px; border-top: 3px solid var(--yellow);">
+            <strong style="display: block; margin-bottom: 0.5rem;">⚡ Automated Follow-ups</strong>
+            <span style="color: var(--gray); font-size: 0.875rem;">"Automate entire follow-up flow, not just bits and pieces" - quick alerts when leads go quiet.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategic Recommendations -->
+      <div class="card" style="margin-top: 2rem; background: #F0FDF4; border: 2px solid var(--success);">
+        <h3 class="card-title" style="color: var(--success);">💡 Strategic Recommendations</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+          <div>
+            <strong style="color: var(--black);">1. Double Down on "Consolidation" Positioning</strong>
+            <p style="color: var(--gray); font-size: 0.875rem; margin-top: 0.5rem;">The audience sees Default as the anti-complexity play. Amplify: "One platform to replace your GTM tech debt."</p>
+          </div>
+          <div>
+            <strong style="color: var(--black);">2. Lead with Speed-to-Lead Metrics</strong>
+            <p style="color: var(--gray); font-size: 0.875rem; margin-top: 0.5rem;">Slow routing frustration is visceral. Create case studies showing time-to-response improvements (hours → minutes).</p>
+          </div>
+          <div>
+            <strong style="color: var(--black);">3. Leverage Anti-MAP Frustration</strong>
+            <p style="color: var(--gray); font-size: 0.875rem; margin-top: 0.5rem;">Negative sentiment toward legacy MAPs is a powerful emotional lever. Position as "modern" vs "anachronistic".</p>
+          </div>
+          <div>
+            <strong style="color: var(--black);">4. Show AI That Actually Works</strong>
+            <p style="color: var(--gray); font-size: 0.875rem; margin-top: 0.5rem;">Bridge the AI hype-reality gap with concrete use cases. Less buzzwords, more "this is what AI routing actually does".</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Summary Stats -->
+      <h2 class="section-title">Summary Statistics</h2>
+      
+      <div class="card">
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="stat-item">
+            <div class="stat-value">74.9%</div>
+            <div class="stat-label">US + UK Comments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">62.2%</div>
+            <div class="stat-label">VP Level or Above</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">61.0%</div>
+            <div class="stat-label">Software/Marketing Industries</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">75.5%</div>
+            <div class="stat-label">Companies < 200 Employees</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">104</div>
+            <div class="stat-label">Repeat Commenters</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">430</div>
+            <div class="stat-label">Engaged Comments (I+C+F)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Reactions Section -->
+      <h2 class="section-title">Reactions Analysis</h2>
+
+      <!-- Note -->
+      <div class="card" style="background: #FEF3C7; border: 2px solid var(--yellow); margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span style="font-size: 2rem;">📊</span>
+          <div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--black);">Analyzed Sample</h4>
+            <p style="margin: 0; color: var(--dark-gray);">
+              This data represents <strong>1,408 reactions analyzed</strong> from 26 posts. The actual total number of reactions across the full campaign is higher.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reactions KPIs -->
+      <div class="kpi-grid" style="margin-bottom: 3rem;">
+        <div class="kpi-card">
+          <span class="kpi-value">1,408</span>
+          <span class="kpi-label">Reactions Analyzed</span>
+          <span class="kpi-subtext">From 26 posts</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">1,029</span>
+          <span class="kpi-label">Unique Reactors</span>
+          <span class="kpi-subtext">In analyzed sample</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">866</span>
+          <span class="kpi-label">Companies Engaged</span>
+          <span class="kpi-subtext">In analyzed sample</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">~54/post</span>
+          <span class="kpi-label">Avg Reactions</span>
+          <span class="kpi-subtext">Analyzed sample</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Geographic Distribution Reactions -->
+        <div class="card">
+          <h3 class="card-title">Geographic Distribution - Reactions</h3>
+          <div class="chart-container">
+            <canvas id="geoReactionsChart"></canvas>
+          </div>
+          <p style="font-size: 0.875rem; color: var(--gray); margin-top: 1rem; text-align: center;">
+            Based on 1,302 reactions with location data
+          </p>
+        </div>
+
+        <!-- Company Size - Reactions -->
+        <div class="card">
+          <h3 class="card-title">Company Size - Reactions</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">51-200</span>
+                <span class="progress-value">23.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 23.7%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">1001-5000</span>
+                <span class="progress-value">14.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 14.8%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">11-50</span>
+                <span class="progress-value">13.0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 13.0%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">2-10</span>
+                <span class="progress-value">11.6%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 11.6%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">201-500</span>
+                <span class="progress-value">9.9%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 9.9%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="dashboard-grid" style="margin-top: 2rem;">
+        <!-- Industries - Reactions -->
+        <div class="card">
+          <h3 class="card-title">Top Industries - Reactions</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Computer Software</span>
+                <span class="progress-value">47.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 47.7%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Marketing & Advertising</span>
+                <span class="progress-value">10.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 10.8%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">IT Services</span>
+                <span class="progress-value">7.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 7.4%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Financial Services</span>
+                <span class="progress-value">5.0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 5.0%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Management Consulting</span>
+                <span class="progress-value">4.9%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 4.9%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Summary Box -->
+        <div class="card" style="background: var(--light-gray);">
+          <h3 class="card-title">Reactions Key Takeaways</h3>
+          <ul class="feature-list">
+            <li class="feature-item highlight">
+              <strong>US-Dominant Audience (66.2%)</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">Combined US + UK + Canada = 76.7% of reactions - strong North American presence.</span>
+            </li>
+            <li class="feature-item highlight">
+              <strong>Mid-Market Sweet Spot</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">51-200 employees is the top segment (23.7%) - ideal ICP for GTM automation tools.</span>
+            </li>
+            <li class="feature-item highlight">
+              <strong>Software Industry Dominance</strong><br>
+              <span style="color: var(--gray); font-size: 0.875rem;">47.7% from Computer Software - strong product-market fit with tech/SaaS audience.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Combined Insights -->
+      <h2 class="section-title">Combined Campaign Performance</h2>
+      
+      <div class="card">
+        <h3 class="card-title">Total Engagement Metrics</h3>
+        <p style="font-size: 0.875rem; color: var(--gray); margin-bottom: 1.5rem; padding: 1rem; background: var(--light-gray); border-radius: 6px;">
+          Note: Reactions data represents an analyzed sample. Actual total engagement is higher.
+        </p>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="stat-item">
+            <div class="stat-value">2,349</div>
+            <div class="stat-label">Engagements Analyzed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">941</div>
+            <div class="stat-label">Total Comments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1,408</div>
+            <div class="stat-label">Reactions Analyzed</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">76</div>
+            <div class="stat-label">Posts with Comments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">49.5%</div>
+            <div class="stat-label">Interest Rate (of engaged)</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">~31/post</div>
+            <div class="stat-label">Avg Engagement</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 Default Campaign Analytics Dashboard</p>
+    </div>
+  </footer>
+
+  <script>
+    // Chart configuration
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#64748B';
+
+    // Feedback Distribution Chart
+    const feedbackCtx = document.getElementById('feedbackChart').getContext('2d');
+    new Chart(feedbackCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Interest (49.5%)', 'Frustrations (32.1%)', 'Feature (18.4%)'],
+        datasets: [{
+          data: [213, 138, 79],
+          backgroundColor: ['#F8CE43', '#666666', '#FFDE5B'],
+          borderColor: '#FFFFFF',
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              padding: 15,
+              font: {
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' comments';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Geographic Distribution Chart  
+    const geoCtx = document.getElementById('geoChart').getContext('2d');
+    new Chart(geoCtx, {
+      type: 'bar',
+      data: {
+        labels: ['United States', 'United Kingdom', 'Canada', 'India', 'Nigeria'],
+        datasets: [{
+          data: [586, 40, 37, 35, 16],
+          backgroundColor: '#F8CE43',
+          borderColor: '#000000',
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' comments';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      }
+    });
+
+    // Animate progress bars on scroll
+    const observerOptions = {
+      threshold: 0.1
+    };
+
+    const progressObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const progressBars = entry.target.querySelectorAll('.progress-fill');
+          progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+              bar.style.width = width;
+            }, 100);
+          });
+          progressObserver.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.progress-list').forEach(list => {
+      progressObserver.observe(list);
+    });
+
+    // Geographic Distribution Chart - Reactions
+    const geoReactionsCtx = document.getElementById('geoReactionsChart').getContext('2d');
+    new Chart(geoReactionsCtx, {
+      type: 'bar',
+      data: {
+        labels: ['United States', 'Canada', 'India', 'United Kingdom', 'Ukraine'],
+        datasets: [{
+          data: [862, 71, 68, 66, 20],
+          backgroundColor: '#000000',
+          borderColor: '#F8CE43',
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' reactions';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
